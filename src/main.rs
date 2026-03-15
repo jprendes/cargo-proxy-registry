@@ -124,15 +124,21 @@ async fn main() {
 
         let cargo_env = vec![
             ("CARGO_HTTP_PROXY".to_string(), proxy_url),
-            ("CARGO_HTTP_CAINFO".to_string(), cainfo_path.to_string_lossy().to_string()),
+            (
+                "CARGO_HTTP_CAINFO".to_string(),
+                cainfo_path.to_string_lossy().to_string(),
+            ),
             ("CARGO_REGISTRY_TOKEN".to_string(), "dummy".to_string()),
         ];
 
-        (Some(HttpProxyState {
-            proxy_state: state.clone(),
-            mitm_ca,
-            upstream_hosts: Arc::new(built.upstream_hosts),
-        }), cargo_env)
+        (
+            Some(HttpProxyState {
+                proxy_state: state.clone(),
+                mitm_ca,
+                upstream_hosts: Arc::new(built.upstream_hosts),
+            }),
+            cargo_env,
+        )
     } else {
         (None, vec![])
     };
@@ -266,8 +272,7 @@ async fn run_server(
         }
     } else if use_tls {
         // TLS without proxy support - use simple axum_server
-        let tls_config = if let (Some(cert_path), Some(key_path)) = (&tls_cert, &tls_key)
-        {
+        let tls_config = if let (Some(cert_path), Some(key_path)) = (&tls_cert, &tls_key) {
             info!("Loading TLS certificate from {:?}", cert_path);
             info!("Loading TLS key from {:?}", key_path);
             RustlsConfig::from_pem_file(cert_path, key_path)

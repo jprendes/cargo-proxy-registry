@@ -49,10 +49,18 @@ fn test_workspace_publish() {
     // Publish the entire workspace using cargo-overlay-registry -- cargo publish
     let publish_output = Command::new(&binary)
         .args([
-            "-r", &format!("local={}", target_dir.join("package").join("tmp-registry").display()),
-            "-r", "crates.io",
+            "-r",
+            &format!(
+                "local={}",
+                target_dir.join("package").join("tmp-registry").display()
+            ),
+            "-r",
+            "crates.io",
             "--",
-            "cargo", "publish", "--workspace", "--allow-dirty",
+            "cargo",
+            "publish",
+            "--workspace",
+            "--allow-dirty",
         ])
         .env("CARGO_TARGET_DIR", &target_dir)
         .env("CARGO_HOME", &cargo_home)
