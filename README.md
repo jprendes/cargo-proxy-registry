@@ -109,6 +109,7 @@ This ensures build scripts can resolve workspace crates that have been packaged 
 |--------|-------|---------|-------------|
 | `--port` | `-p` | 8080 | Server port (registry + proxy) |
 | `--host` | `-H` | 0.0.0.0 | Host to bind to |
+| `--base-url` | `-b` | https://crates.io | Base URL for the proxy (used in config.json) |
 | `--registry` | `-r` | `local` + `crates.io` | Registry layers (see below) |
 | `--no-proxy` | | | Disable proxy mode (CONNECT handling with MITM) |
 | `--read-only` | | | Make the registry read-only (reject all publish requests) |
