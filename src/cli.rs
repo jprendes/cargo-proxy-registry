@@ -6,6 +6,7 @@ use clap::Parser;
 /// Cargo registry proxy - proxies crates.io and supports local publishing
 #[derive(Parser, Debug)]
 #[command(name = "cargo-overlay-registry")]
+#[command(bin_name = "cargo overlay-registry")]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
     /// Port to listen on

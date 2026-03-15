@@ -16,7 +16,13 @@ async fn main() {
     // Initialize the logger
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("warn")).init();
 
-    let args = Args::parse();
+    // Filter out "overlay-registry" if called via `cargo overlay-registry`
+    let args: Vec<String> = std::env::args()
+        .enumerate()
+        .filter(|(i, arg)| !(*i == 1 && arg == "overlay-registry"))
+        .map(|(_, arg)| arg)
+        .collect();
+    let args = Args::parse_from(args);
 
     // Determine if TLS is enabled (enabled by default unless --no-tls or --exec is used)
     // When executing a command, we use plain HTTP to avoid needing to trust the proxy's cert
