@@ -95,6 +95,7 @@ impl Registry for LocalRegistry {
         &self,
         metadata: PublishMetadata,
         crate_data: &[u8],
+        _auth_token: Option<&str>,
     ) -> Result<String, RegistryError> {
         // Read-only registries don't support publishing
         if self.read_only {

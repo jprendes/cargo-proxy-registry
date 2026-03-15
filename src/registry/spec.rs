@@ -137,10 +137,8 @@ pub fn build_registry(specs: &[RegistrySpec], options: &RegistryBuildOptions) ->
     let mut upstream_hosts = Vec::new();
     let mut temp_dirs = Vec::new();
 
-    // Find the index of the topmost (first) local registry
-    let topmost_local_idx = specs
-        .iter()
-        .position(|s| matches!(s, RegistrySpec::Local { .. }));
+    // The topmost (first) registry is writable (if not read_only)
+    let writable_idx = if options.read_only { None } else { Some(0) };
 
     // Build from bottom to top
     let mut registry: Option<AnyRegistry> = None;
@@ -159,9 +157,8 @@ pub fn build_registry(specs: &[RegistrySpec], options: &RegistryBuildOptions) ->
                 // Create index directory
                 std::fs::create_dir_all(path.join("index")).ok();
 
-                // Only the topmost local registry can be writable (if not read_only)
-                let is_topmost = topmost_local_idx == Some(idx);
-                if is_topmost && !options.read_only {
+                // Only the designated registry is writable
+                if writable_idx == Some(idx) {
                     let validate = !options.permissive_publishing;
                     AnyRegistry::new(LocalRegistry::new(path, validate))
                 } else {
@@ -182,7 +179,12 @@ pub fn build_registry(specs: &[RegistrySpec], options: &RegistryBuildOptions) ->
                 {
                     upstream_hosts.push(host.to_string());
                 }
-                AnyRegistry::new(RemoteRegistry::new(index_url.clone(), api_url.clone()))
+                // Remote registries can also be writable (forwarding publishes)
+                if writable_idx == Some(idx) {
+                    AnyRegistry::new(RemoteRegistry::writable(index_url.clone(), api_url.clone()))
+                } else {
+                    AnyRegistry::new(RemoteRegistry::new(index_url.clone(), api_url.clone()))
+                }
             }
         };
 

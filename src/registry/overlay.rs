@@ -69,8 +69,9 @@ where
         &self,
         metadata: PublishMetadata,
         crate_data: &[u8],
+        auth_token: Option<&str>,
     ) -> Result<String, RegistryError> {
         // Publish always goes to the top layer
-        self.top.publish(metadata, crate_data).await
+        self.top.publish(metadata, crate_data, auth_token).await
     }
 }

@@ -229,7 +229,7 @@ pub async fn handle_api_search<S: RegistryState>(
 /// This saves the crate locally using the Registry trait
 pub async fn handle_api_publish<S: RegistryState>(
     State(state): State<Arc<S>>,
-    _headers: HeaderMap,
+    headers: HeaderMap,
     body: Bytes,
 ) -> impl IntoResponse {
     debug!(
@@ -248,8 +248,17 @@ pub async fn handle_api_publish<S: RegistryState>(
 
     debug!("  Publishing: {} v{}", metadata.name, metadata.vers);
 
+    // Extract auth token for forwarding to remote registries
+    let auth_token = headers
+        .get(header::AUTHORIZATION)
+        .and_then(|v| v.to_str().ok());
+
     // Use the Registry trait to publish
-    match state.registry().publish(metadata, crate_data).await {
+    match state
+        .registry()
+        .publish(metadata, crate_data, auth_token)
+        .await
+    {
         Ok(checksum) => {
             debug!("  Checksum: {}", checksum);
             debug!("  Response: 200 OK");
@@ -475,7 +484,7 @@ pub async fn handle_internal_request<S: RegistryState>(
             internal_handle_search(state, &query, headers).await
         }
 
-        ("PUT", "/api/v1/crates/new") => internal_handle_publish(state, body).await,
+        ("PUT", "/api/v1/crates/new") => internal_handle_publish(state, headers, body).await,
 
         _ => InternalResponse::error(404, "Not found"),
     }
@@ -523,7 +532,11 @@ async fn internal_handle_index_lookup<S: RegistryState>(
     }
 }
 
-async fn internal_handle_publish<S: RegistryState>(state: &S, body: &[u8]) -> InternalResponse {
+async fn internal_handle_publish<S: RegistryState>(
+    state: &S,
+    headers: &[(String, String)],
+    body: &[u8],
+) -> InternalResponse {
     debug!(
         "PUT /api/v1/crates/new ({} bytes) - Publishing locally (internal)",
         body.len()
@@ -540,8 +553,18 @@ async fn internal_handle_publish<S: RegistryState>(state: &S, body: &[u8]) -> In
 
     debug!("  Publishing: {} v{}", metadata.name, metadata.vers);
 
+    // Extract auth token for forwarding to remote registries
+    let auth_token = headers
+        .iter()
+        .find(|(k, _)| k.eq_ignore_ascii_case("authorization"))
+        .map(|(_, v)| v.as_str());
+
     // Use the Registry trait to publish
-    match state.registry().publish(metadata, crate_data).await {
+    match state
+        .registry()
+        .publish(metadata, crate_data, auth_token)
+        .await
+    {
         Ok(checksum) => {
             debug!("  Checksum: {}", checksum);
             debug!("  Response: 200 OK");

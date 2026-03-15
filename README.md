@@ -25,7 +25,7 @@ flowchart TB
 - **tmp-registry**: Temp registry created by `cargo publish` (`-r local=./target/package/tmp-registry`)
 - **crates.io**: Upstream fallback (`-r crates.io`)
 
-- **Publish**: Crates are stored in the top-most overlay (for local registries only; remote layers are read-only)
+- **Publish**: Crates go to the top-most layer (local or remote with forwarding)
 - **Download**: Local crates are served first; missing crates fall through to the next layer
 - **Index**: Indexes from all layers are merged from top to bottom; top layers win conflicts
 
@@ -121,7 +121,7 @@ This ensures build scripts can resolve workspace crates that have been packaged 
 
 ### Registry Layers (`-r`)
 
-Registry layers are stacked top-to-bottom. The topmost local registry receives publishes (unless `--read-only` is set); reads check each layer in order.
+Registry layers are stacked top-to-bottom. The topmost registry receives publishes (unless `--read-only` is set); reads check each layer in order. Remote registries forward publish requests to the upstream with the provided auth token.
 
 | Syntax | Description |
 |--------|-------------|

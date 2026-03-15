@@ -85,10 +85,12 @@ pub trait Registry: Send + Sync {
     ) -> impl std::future::Future<Output = Result<Vec<u8>, RegistryError>> + Send;
 
     /// Publish a crate (store crate file and update index)
+    /// auth_token is passed for forwarding to remote registries
     fn publish(
         &self,
         metadata: PublishMetadata,
         crate_data: &[u8],
+        auth_token: Option<&str>,
     ) -> impl std::future::Future<Output = Result<String, RegistryError>> + Send;
 }
 
@@ -115,6 +117,7 @@ pub trait DynRegistry: Send + Sync {
         &'a self,
         metadata: PublishMetadata,
         crate_data: &'a [u8],
+        auth_token: Option<&'a str>,
     ) -> Pin<Box<dyn Future<Output = Result<String, RegistryError>> + Send + 'a>>;
 }
 
@@ -139,8 +142,9 @@ impl<T: Registry> DynRegistry for T {
         &'a self,
         metadata: PublishMetadata,
         crate_data: &'a [u8],
+        auth_token: Option<&'a str>,
     ) -> Pin<Box<dyn Future<Output = Result<String, RegistryError>> + Send + 'a>> {
-        Box::pin(Registry::publish(self, metadata, crate_data))
+        Box::pin(Registry::publish(self, metadata, crate_data, auth_token))
     }
 }
 
@@ -177,7 +181,8 @@ impl Registry for AnyRegistry {
         &self,
         metadata: PublishMetadata,
         crate_data: &[u8],
+        auth_token: Option<&str>,
     ) -> Result<String, RegistryError> {
-        self.0.publish(metadata, crate_data).await
+        self.0.publish(metadata, crate_data, auth_token).await
     }
 }

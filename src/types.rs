@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 /// Publish request metadata (from cargo)
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 #[allow(dead_code)]
 pub struct PublishMetadata {
     pub name: String,
@@ -143,7 +143,7 @@ impl PublishMetadata {
 }
 
 /// Dependency in publish request
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct PublishDependency {
     pub name: String,
     pub version_req: String,

@@ -51,10 +51,10 @@ async fn main() {
 
     // Log registry info
     for (idx, spec) in registries.iter().enumerate() {
+        let is_writable = idx == 0 && !args.read_only;
+        let mode = if is_writable { "writable" } else { "read-only" };
         match spec {
             RegistrySpec::Local { path } => {
-                let is_writable = idx == 0 && !args.read_only;
-                let mode = if is_writable { "writable" } else { "read-only" };
                 if let Some(p) = path {
                     info!("Local registry ({}) at: {}", mode, p.display());
                 } else {
@@ -62,7 +62,10 @@ async fn main() {
                 }
             }
             RegistrySpec::Remote { api_url, index_url } => {
-                info!("Remote registry: api={}, index={}", api_url, index_url);
+                info!(
+                    "Remote registry ({}): api={}, index={}",
+                    mode, api_url, index_url
+                );
             }
         }
     }
