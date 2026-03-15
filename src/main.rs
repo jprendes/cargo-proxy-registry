@@ -124,8 +124,8 @@ async fn main() {
         );
 
         // Only set dummy token if writable registry is local (remote uses cargo's own token)
-        let needs_dummy_token = !args.read_only
-            && matches!(registries.first(), Some(RegistrySpec::Local { .. }));
+        let needs_dummy_token =
+            !args.read_only && matches!(registries.first(), Some(RegistrySpec::Local { .. }));
 
         if needs_dummy_token {
             info!("Set CARGO_REGISTRY_TOKEN=dummy to enable publishing");
