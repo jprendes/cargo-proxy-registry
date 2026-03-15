@@ -122,23 +122,34 @@ async fn main() {
             "Set CARGO_HTTP_CAINFO={:?} to trust the proxy's certificates",
             cainfo_path
         );
-        info!("Set CARGO_REGISTRY_TOKEN=dummy to enable publishing");
+
+        // Only set dummy token if writable registry is local (remote uses cargo's own token)
+        let needs_dummy_token = !args.read_only
+            && matches!(registries.first(), Some(RegistrySpec::Local { .. }));
+
+        if needs_dummy_token {
+            info!("Set CARGO_REGISTRY_TOKEN=dummy to enable publishing");
+        }
 
         // Only print env vars to stdout if not executing a command
         if args.exec.is_none() {
             println!("CARGO_HTTP_PROXY={}", proxy_url);
             println!("CARGO_HTTP_CAINFO={:?}", cainfo_path);
-            println!("CARGO_REGISTRY_TOKEN=dummy");
+            if needs_dummy_token {
+                println!("CARGO_REGISTRY_TOKEN=dummy");
+            }
         }
 
-        let cargo_env = vec![
+        let mut cargo_env = vec![
             ("CARGO_HTTP_PROXY".to_string(), proxy_url),
             (
                 "CARGO_HTTP_CAINFO".to_string(),
                 cainfo_path.to_string_lossy().to_string(),
             ),
-            ("CARGO_REGISTRY_TOKEN".to_string(), "dummy".to_string()),
         ];
+        if needs_dummy_token {
+            cargo_env.push(("CARGO_REGISTRY_TOKEN".to_string(), "dummy".to_string()));
+        }
 
         (
             Some(HttpProxyState {
